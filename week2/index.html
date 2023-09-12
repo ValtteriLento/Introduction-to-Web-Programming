@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <script src="src/index.js" defer></script>
+        <title>Week2</title>
+    </head>
+    <body>
+        <form action="" method="GET">
+            <legend>Information:</legend>
+            <label for="input-username">Username:</label>
+            <input type="text" id="input-username" placeholder="Username">
+            <br>
+            <label for="input-email">Email:</label>
+            <input type="text" id="input-email" placeholder="Email">
+            <br>
+            <label for="input-admin">Admin:</label>
+            <input type="checkbox" id="input-admin">
+            <br>
+            <input type="submit" id="submit-data">
+        </form>
+
+        <button id="empty-table">Empty table</button>
+
+        <table>
+            <thead>
+                <tr><th>Username</th><th>Email</th><th>Admin</th></tr>
+            </thead>
+            <tbody id="table">
+                <tr><td>Webmaster</td><td>example@email.com</td><td>X</td></tr>
+                <tr><td>User123</td><td>example@email.com</td><td>-</td></tr>
+                <tr><td>AnotherUser123</td><td>example@email.com</td><td>-</td></tr>
+            </tbody>
+        </table>
+    </body>
+</html>
