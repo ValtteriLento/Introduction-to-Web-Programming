@@ -23,9 +23,8 @@ if (document.readyState !== "loading") {
         const res = await fetch(url);
         const data = await res.json();
         //console.log(data);
-        const positiveArray = Object.values(data.dataset.value);
 
-        return positiveArray;
+        return data;
     }
 
     const fetchNegative = async () => {
@@ -33,9 +32,8 @@ if (document.readyState !== "loading") {
         const res = await fetch(url);
         const data = await res.json();
         //console.log(data);
-        const negativeArray = Object.values(data.dataset.value);
 
-        return negativeArray;
+        return data;
     }
 
     const initMap = (data) => {
@@ -58,23 +56,24 @@ if (document.readyState !== "loading") {
 
     const getFeature = (feature, layer) => {
         if (!feature) return;
-        const id = feature.id.split("."); // https://www.w3schools.com/jsref/jsref_split.asp
-        //console.log(id);
+        const areaCode = "KU" + feature.properties.kunta;
+        const index = positiveData.dataset.dimension.Tuloalue.category.index[areaCode];
         layer.bindTooltip(feature.properties.name);
 
         layer.bindPopup(
             `<ul>
                 <li>Name: ${feature.properties.name}</li>
-                <li>Positive migration: ${positiveArray[id[1]]}</li>
-                <li>Negative migration: ${negativeArray[id[1]]}</li>
+                <li>Positive migration: ${positiveData.dataset.value[index]}</li>
+                <li>Negative migration: ${negativeData.dataset.value[index]}</li>
             </ul>`
         );
     };
 
     const getStyle = (feature) => {
-        const id = feature.id.split(".");
-        const positive = positiveArray[id[1]];
-        const negative = negativeArray[id[1]];
+        const areaCode = "KU" + feature.properties.kunta;
+        const index = positiveData.dataset.dimension.Tuloalue.category.index[areaCode];
+        const positive = positiveData.dataset.value[index];
+        const negative = negativeData.dataset.value[index];
         let color;
 
         if (((positive / negative)**3) * 60 > 120) {
@@ -88,8 +87,8 @@ if (document.readyState !== "loading") {
         }
     }
 
-    const positiveArray = await fetchPositive();
-    const negativeArray = await fetchNegative();
+    const positiveData = await fetchPositive();
+    const negativeData = await fetchNegative();
     fetchData();
 
 }
