@@ -75,14 +75,16 @@ if (document.readyState !== "loading") {
         const id = feature.id.split(".");
         const positive = positiveArray[id[1]];
         const negative = negativeArray[id[1]];
-        let hue = (positive / negative)**3 * 60;
+        let color;
 
-        if (hue > 120) {
-            hue = 120;
+        if (((positive / negative)**3) * 60 > 120) {
+            color = "hsl(" + 120 + ", 75%, 50%)";
+        } else {
+            color = "hsl(" + ((positive / negative)**3) * 60 + ", 75%, 50%)";
         }
 
         return {
-            color: "hsl(" + hue + ", 75%, 50%)"
+            color: color
         }
     }
 
