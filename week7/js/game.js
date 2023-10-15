@@ -81,7 +81,7 @@ class PlayGame extends Phaser.Scene {
 
         this.anims.create({
             key: "right",
-            frames: this.anims.generateFrameNumbers("dude", {start: 5, end: 9}),
+            frames: this.anims.generateFrameNumbers("dude", {start: 5, end: 8}),
             frameRate: 10,
             repeat: -1
         });
