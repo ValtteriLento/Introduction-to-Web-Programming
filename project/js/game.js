@@ -40,6 +40,7 @@ class PlayGame extends Phaser.Scene {
         this.load.image("background", "assets/Green.png")
         this.load.spritesheet("terrain", "assets/Terrain (16x16).png", {frameWidth: 16, frameHeight: 16})
         this.load.spritesheet("kiwi", "assets/Fruits/Kiwi.png", {frameWidth: 32, frameHeight: 32})
+        this.load.spritesheet("pineapple", "assets/Fruits/Pineapple.png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("collected", "assets/Fruits/Collected.png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("player", "assets/Ninja Frog/Idle (32x32).png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("playerJump", "assets/Ninja Frog/Jump (32x32).png", {frameWidth: 32, frameHeight: 32})
@@ -60,16 +61,12 @@ class PlayGame extends Phaser.Scene {
             y += 160
         }
 
-        this.terrain = this.physics.add.staticGroup()
-
-        this.kiwis = this.physics.add.group()
-
-        this.anims.create({
-            key: "kiwi",
-            frames: this.anims.generateFrameNumbers("kiwi", {start: 0, end: 16}),
-            frameRate: 10,
-            repeat: -1
+        this.terrain = this.physics.add.group({
+            immovable: true,
+            allowGravity: false
         })
+
+        this.fruits = this.physics.add.group()
 
         for (let i = 0; i < 20; i++) {
             const x = Phaser.Math.Between(50, 750)
@@ -80,7 +77,6 @@ class PlayGame extends Phaser.Scene {
             this.terrain.create(x + 32, y, "terrain", 189)
             this.terrain.create(x + 48, y, "terrain", 189)
             this.terrain.create(x + 64, y, "terrain", 190)
-            this.kiwis.create(x + 32, y - 32, "kiwi").anims.play("kiwi", true)
         }
 
         this.terrain.create(368, 600, "terrain", 188)
@@ -96,10 +92,10 @@ class PlayGame extends Phaser.Scene {
         this.player.body.checkCollision.left = false
         this.player.body.checkCollision.right = false
 
-        this.physics.add.collider(this.kiwis, this.terrain)
-        this.physics.add.overlap(this.player, this.kiwis, this.collectFruit, null, this);
+        this.physics.add.collider(this.fruits, this.terrain)
+        this.physics.add.overlap(this.player, this.fruits, this.collectFruit, null, this);
 
-        this.scoreText = this.add.text(32, 3, "0", {fontSize: "30px", fill: "#ffffff"});
+        this.scoreText = this.add.text(32, 10, "0", {fontSize: "30px", fill: "#000000"});
 
         this.cursors = this.input.keyboard.createCursorKeys()
 
@@ -130,16 +126,56 @@ class PlayGame extends Phaser.Scene {
         })
 
         this.anims.create({
+            key: "kiwi",
+            frames: this.anims.generateFrameNumbers("kiwi", {start: 0, end: 16}),
+            frameRate: 10,
+            repeat: -1
+        })
+
+        this.anims.create({
+            key: "pineapple",
+            frames: this.anims.generateFrameNumbers("pineapple", {start: 0, end: 16}),
+            frameRate: 10,
+            repeat: -1
+        })
+
+        this.anims.create({
             key: "collected",
             frames: this.anims.generateFrameNumbers("collected", {start: 0, end: 5}),
             frameRate: 10
         })
+
+        this.triggerTimer = this.time.addEvent({
+            callback: this.addTerrain,
+            callbackScope: this,
+            delay: 1200,
+            loop: true
+        });
+
+    }
+
+    addTerrain() {
+        const x = Phaser.Math.Between(50, 750)
+        const y = 0
+
+        this.terrain.create(x, y, "terrain", 188)
+        this.terrain.create(x + 16, y, "terrain", 189)
+        this.terrain.create(x + 32, y, "terrain", 189)
+        this.terrain.create(x + 48, y, "terrain", 189)
+        this.terrain.create(x + 64, y, "terrain", 190)
+        this.terrain.setVelocityY(gameOptions.playerSpeed / 6);
+
+        if(Phaser.Math.Between(0, 1)) {
+            this.fruits.create(Phaser.Math.Between(0, game.config.width), 0, "kiwi").anims.play("kiwi", true)
+            this.fruits.create(Phaser.Math.Between(0, game.config.width), 0, "pineapple").anims.play("pineapple", true)
+        }
     }
 
     collectFruit(player, fruit) {
-        fruit.anims.play("collected", true).disableBody(true, true)
+        fruit.anims.play("collected", true)
         this.score += 1;
-        this.scoreText.setText(this.score);
+        this.scoreText.setText(this.score)
+        fruit.disableBody(true, true)
     }
 
     update() {
@@ -164,7 +200,7 @@ class PlayGame extends Phaser.Scene {
 
         if (this.player.body.velocity.y < 0) {
             this.player.anims.play("jump", true)
-        } else if (this.player.body.velocity.y > 0) {
+        } else if (this.player.body.velocity.y > 0 && !this.player.body.touching.down) {
             this.player.anims.play("fall", true)
         }
 
