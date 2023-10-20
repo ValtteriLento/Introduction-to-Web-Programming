@@ -39,19 +39,22 @@ class MainMenu extends Phaser.Scene {
         this.load.spritesheet("terrain", "assets/Terrain (16x16).png", {frameWidth: 16, frameHeight: 16})
         this.load.spritesheet("kiwi", "assets/Fruits/Kiwi.png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("pineapple", "assets/Fruits/Pineapple.png", {frameWidth: 32, frameHeight: 32})
-        this.load.spritesheet("collected", "assets/Fruits/Collected.png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("player", "assets/Ninja Frog/Idle (32x32).png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("playerJump", "assets/Ninja Frog/Jump (32x32).png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("playerFall", "assets/Ninja Frog/Fall (32x32).png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("playerRun", "assets/Ninja Frog/Run (32x32).png", {frameWidth: 32, frameHeight: 32})
-        this.load.audio("jump", "assets/sfx/Jump.wav")
-        this.load.audio("pickUp", "assets/sfx/PickUp.wav")
+        this.load.spritesheet("playerHit", "assets/Ninja Frog/Hit (32x32).png", {frameWidth: 32, frameHeight: 32})
+        this.load.image("spikeHead", "assets/Traps/Spike Head/Idle.png")
+        this.load.spritesheet("spikeHeadHit", "assets/Traps/Spike Head/Bottom Hit (54x52).png", {frameWidth: 54, frameHeight: 52})
+        this.load.audio("jump", "assets/sfx/Retro Jump Classic 08.wav")
+        this.load.audio("pickUp", "assets/sfx/Retro PickUp 18.wav")
+        this.load.audio("hit", "assets/sfx/Retro Negative Short 23.wav")
     }
 
     create() {
         this.add.image(game.config.width / 2, game.config.height / 2, "grassland").setScale(3)
 
-        this.add.text(game.config.width / 2, game.config.height / 3, "Main Menu", {
+        this.add.text(game.config.width / 2, game.config.height / 3, "Infinite Runner", {
             fontSize: 48,
             fill: "#660000"
         }).setOrigin(0.5)
@@ -92,6 +95,12 @@ class MainMenu extends Phaser.Scene {
         })
 
         this.anims.create({
+            key: "hit",
+            frames: this.anims.generateFrameNumbers("playerHit", {start: 0, end: 6}),
+            frameRate: 20
+        })
+
+        this.anims.create({
             key: "kiwi",
             frames: this.anims.generateFrameNumbers("kiwi", {start: 0, end: 16}),
             frameRate: 20,
@@ -106,9 +115,9 @@ class MainMenu extends Phaser.Scene {
         })
 
         this.anims.create({
-            key: "collected",
-            frames: this.anims.generateFrameNumbers("collected", {start: 0, end: 5}),
-            frameRate: 10
+            key: "spikeHeadHit",
+            frames: this.anims.generateFrameNumbers("spikeHeadHit", {start: 2, end: 3}),
+            frameRate: 20
         })
     }
 }
@@ -124,6 +133,11 @@ class PlayGame extends Phaser.Scene {
         this.add.image(game.config.width / 2, game.config.height / 2, "grassland").setScale(3)
 
         this.terrain = this.physics.add.group({
+            immovable: true,
+            allowGravity: false
+        })
+
+        this.heads = this.physics.add.group({
             immovable: true,
             allowGravity: false
         })
@@ -154,6 +168,9 @@ class PlayGame extends Phaser.Scene {
         this.physics.add.collider(this.fruits, this.terrain)
         this.physics.add.overlap(this.player, this.fruits, this.collectFruit, null, this)
 
+        this.physics.add.collider(this.heads, this.terrain)
+        this.physics.add.overlap(this.player, this.heads, this.playerHit, null, this)
+
         this.scoreText = this.add.text(32, 10, "0", {fontSize: "30px", fill: "#000000"})
 
         this.cursors = this.input.keyboard.createCursorKeys()
@@ -182,24 +199,31 @@ class PlayGame extends Phaser.Scene {
             this.fruits.create(Phaser.Math.Between(200, game.config.width), 0, "kiwi").anims.play("kiwi", true)
             this.fruits.create(Phaser.Math.Between(200, game.config.width), 0, "pineapple").anims.play("pineapple", true)
             this.fruits.setVelocityX(-gameOptions.playerSpeed / 5)
+            this.heads.create(Phaser.Math.Between(200, game.config.width), 0, "spikeHead")
+            this.heads.setVelocityX(-gameOptions.playerSpeed / 5)
         }
     }
 
     collectFruit(player, fruit) {
-        fruit.anims.play("collected", true)
         this.score += 1;
         this.scoreText.setText(this.score)
         fruit.disableBody(true, true)
         this.sound.play("pickUp")
     }
 
+    playerHit(player, trap) {
+        player.anims.play("hit", true)
+        this.sound.play("hit")
+        player.body.checkCollision.down = false
+    }
+
     update() {
-        if (this.cursors.left.isDown) {
+        if (this.cursors.left.isDown && this.player.body.checkCollision.down == true) {
             this.player.body.velocity.x = -gameOptions.playerSpeed
             this.player.setFlipX(true)
             this.player.anims.play("run", true)
         }
-        else if (this.cursors.right.isDown) {
+        else if (this.cursors.right.isDown && this.player.body.checkCollision.down == true) {
             this.player.body.velocity.x = gameOptions.playerSpeed
             this.player.setFlipX(false)
             this.player.anims.play("run", true)
@@ -208,7 +232,6 @@ class PlayGame extends Phaser.Scene {
             this.player.anims.play("idle", true)
         } else {
             this.player.body.velocity.x = 0;
-            this.player.anims.play("idle", true)
         }
 
         if (this.cursors.up.isDown && this.player.body.touching.down) {
@@ -216,11 +239,20 @@ class PlayGame extends Phaser.Scene {
             this.sound.play("jump")
         }
 
-        if (this.player.body.velocity.y < 0) {
+        if (this.player.body.velocity.y < 0 && this.player.body.checkCollision.down == true) {
             this.player.anims.play("jump", true)
-        } else if (this.player.body.velocity.y > 0 && !this.player.body.touching.down) {
+        } else if (this.player.body.velocity.y > 0 && !this.player.body.touching.down && this.player.body.checkCollision.down == true) {
             this.player.anims.play("fall", true)
         }
+
+        this.heads.getChildren().forEach(head => {
+            if (head.body.touching.down) {
+                head.anims.play("spikeHeadHit", true)
+                head.setVelocityY(-200)
+            } else if (head.y <= 0) {
+                head.setVelocityY(200)
+            }
+        })
 
         if (this.player.y > game.config.height || this.player.x < 0) {
             this.scene.start("GameOver")
@@ -236,8 +268,23 @@ class GameOver extends Phaser.Scene {
     create() {
         this.add.image(game.config.width / 2, game.config.height / 2, "grassland").setScale(3)
 
-        this.add.text(game.config.width / 2, game.config.height / 3, "Game Over", {
+        this.add.text(game.config.width / 2, game.config.height / 5, "Game Over", {
             fontSize: 48,
+            fill: "#660000"
+        }).setOrigin(0.5)
+
+        this.add.text(game.config.width / 2, game.config.height / 3.5, "Your score: " + this.scene.get("PlayGame").score, {
+            fontSize: 32,
+            fill: "#006600"
+        }).setOrigin(0.5)
+
+        this.add.text(game.config.width / 2, game.config.height / 3, "Enter your name:", {
+            fontSize: 32,
+            fill: "#006600"
+        }).setOrigin(0.5)
+
+        const textEntry = this.add.text(game.config.width / 2, game.config.height / 2.5, "", {
+            fontSize: 32,
             fill: "#ff0000"
         }).setOrigin(0.5)
 
