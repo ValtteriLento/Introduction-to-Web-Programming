@@ -28,6 +28,7 @@ window.onload = function() {
     window.focus();
 }
 
+// Main menu where assets are preloaded and animations are created
 class MainMenu extends Phaser.Scene {
 
     constructor() {
@@ -126,6 +127,9 @@ class PlayGame extends Phaser.Scene {
 
     constructor() {
         super("PlayGame")
+    }
+
+    init() {
         this.score = 0;
     }
 
@@ -144,6 +148,7 @@ class PlayGame extends Phaser.Scene {
 
         this.fruits = this.physics.add.group()
 
+        // Generates starting terrains
         for (let i = 0; i < 20; i++) {
             const x = Phaser.Math.Between(200, 800)
             const y = 200 + (20 * i)
@@ -155,6 +160,7 @@ class PlayGame extends Phaser.Scene {
             this.terrain.create(x + 64, y, "terrain", 190)
         }
 
+        // Starting terrain for player
         this.terrain.create(68, game.config.height / 2 - 16, "terrain", 210)
         this.terrain.create(68, game.config.height / 2, "terrain", 188)
         this.terrain.create(84, game.config.height / 2, "terrain", 189)
@@ -184,9 +190,10 @@ class PlayGame extends Phaser.Scene {
 
     }
 
+    // Adds new terrain, enemies and collectibles infinitely
     addTerrain() {
         const x = 800
-        const y = Phaser.Math.Between(200, 500)
+        const y = Phaser.Math.Between(200, 600)
 
         this.terrain.create(x, y, "terrain", 188)
         this.terrain.create(x + 16, y, "terrain", 189)
@@ -195,17 +202,29 @@ class PlayGame extends Phaser.Scene {
         this.terrain.create(x + 64, y, "terrain", 190)
         this.terrain.setVelocityX(-gameOptions.playerSpeed / 5)
 
-        if (Phaser.Math.Between(0, 1)) {
+        if (Phaser.Math.Between(0, 1) == 1) {
             this.fruits.create(Phaser.Math.Between(200, game.config.width), 0, "kiwi").anims.play("kiwi", true)
+            this.fruits.setVelocityX(-gameOptions.playerSpeed / 5)
+        }
+
+        if (Phaser.Math.Between(0, 2) == 1) {
             this.fruits.create(Phaser.Math.Between(200, game.config.width), 0, "pineapple").anims.play("pineapple", true)
             this.fruits.setVelocityX(-gameOptions.playerSpeed / 5)
+        }
+
+        if (Phaser.Math.Between(0, 3) == 1) {
             this.heads.create(Phaser.Math.Between(200, game.config.width), 0, "spikeHead")
             this.heads.setVelocityX(-gameOptions.playerSpeed / 5)
         }
     }
 
+    // Fruits give different amount of score
     collectFruit(player, fruit) {
-        this.score += 1;
+        if (fruit.texture.key == "kiwi") {
+            this.score += 10
+        } else if (fruit.texture.key == "pineapple") {
+            this.score += 20
+        }
         this.scoreText.setText(this.score)
         fruit.disableBody(true, true)
         this.sound.play("pickUp")
@@ -218,31 +237,35 @@ class PlayGame extends Phaser.Scene {
     }
 
     update() {
-        if (this.cursors.left.isDown && this.player.body.checkCollision.down == true) {
-            this.player.body.velocity.x = -gameOptions.playerSpeed
-            this.player.setFlipX(true)
-            this.player.anims.play("run", true)
-        }
-        else if (this.cursors.right.isDown && this.player.body.checkCollision.down == true) {
-            this.player.body.velocity.x = gameOptions.playerSpeed
-            this.player.setFlipX(false)
-            this.player.anims.play("run", true)
-        } else if (this.player.body.touching.down) {
-            this.player.body.velocity.x = -gameOptions.playerSpeed / 5
-            this.player.anims.play("idle", true)
-        } else {
-            this.player.body.velocity.x = 0;
-        }
+        // These are disabled when player is hit
+        if (this.player.body.checkCollision.down) {
+            if (this.cursors.left.isDown) {
+                this.player.body.velocity.x = -gameOptions.playerSpeed
+                this.player.setFlipX(true)
+                this.player.anims.play("run", true)
+            }
+            else if (this.cursors.right.isDown) {
+                this.player.body.velocity.x = gameOptions.playerSpeed
+                this.player.setFlipX(false)
+                this.player.anims.play("run", true)
+            // Creates illusion of player standing still when on moving platform
+            } else if (this.player.body.touching.down) {
+                this.player.body.velocity.x = -gameOptions.playerSpeed / 5
+                this.player.anims.play("idle", true)
+            } else {
+                this.player.body.velocity.x = 0;
+            }
 
-        if (this.cursors.up.isDown && this.player.body.touching.down) {
-            this.player.body.velocity.y = -500 / 1.6
-            this.sound.play("jump")
-        }
+            if (this.cursors.up.isDown && this.player.body.touching.down) {
+                this.player.body.velocity.y = -500 / 1.6
+                this.sound.play("jump")
+            }
 
-        if (this.player.body.velocity.y < 0 && this.player.body.checkCollision.down == true) {
-            this.player.anims.play("jump", true)
-        } else if (this.player.body.velocity.y > 0 && !this.player.body.touching.down && this.player.body.checkCollision.down == true) {
-            this.player.anims.play("fall", true)
+            if (this.player.body.velocity.y < 0) {
+                this.player.anims.play("jump", true)
+            } else if (this.player.body.velocity.y > 0 && !this.player.body.touching.down) {
+                this.player.anims.play("fall", true)
+            }
         }
 
         this.heads.getChildren().forEach(head => {
