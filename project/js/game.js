@@ -47,6 +47,8 @@ class MainMenu extends Phaser.Scene {
         this.load.spritesheet("playerHit", "assets/Ninja Frog/Hit (32x32).png", {frameWidth: 32, frameHeight: 32})
         this.load.image("spikeHead", "assets/Traps/Spike Head/Idle.png")
         this.load.spritesheet("spikeHeadHit", "assets/Traps/Spike Head/Bottom Hit (54x52).png", {frameWidth: 54, frameHeight: 52})
+        this.load.image("fanOff", "assets/Traps/Fan/Off.png")
+        this.load.spritesheet("fanOn", "assets/Traps/Fan/On (24x8).png", {frameWidth: 24, frameHeight: 8})
         this.load.audio("jump", "assets/sfx/Retro Jump Classic 08.wav")
         this.load.audio("pickUp", "assets/sfx/Retro PickUp 18.wav")
         this.load.audio("hit", "assets/sfx/Retro Negative Short 23.wav")
@@ -120,6 +122,13 @@ class MainMenu extends Phaser.Scene {
             frames: this.anims.generateFrameNumbers("spikeHeadHit", {start: 2, end: 3}),
             frameRate: 20
         })
+
+        this.anims.create({
+            key: "fanOn",
+            frames: this.anims.generateFrameNumbers("fanOn", {start: 0, end: 3}),
+            frameRate: 20,
+            repeat: 4
+        })
     }
 }
 
@@ -142,6 +151,11 @@ class PlayGame extends Phaser.Scene {
         })
 
         this.heads = this.physics.add.group({
+            immovable: true,
+            allowGravity: false
+        })
+
+        this.fans = this.physics.add.group({
             immovable: true,
             allowGravity: false
         })
@@ -176,6 +190,8 @@ class PlayGame extends Phaser.Scene {
 
         this.physics.add.collider(this.heads, this.terrain)
         this.physics.add.overlap(this.player, this.heads, this.playerHit, null, this)
+
+        this.physics.add.overlap(this.player, this.fans, this.fanOn, null, this)
 
         this.scoreText = this.add.text(32, 10, "0", {fontSize: "30px", fill: "#000000"})
 
@@ -216,6 +232,11 @@ class PlayGame extends Phaser.Scene {
             this.heads.create(Phaser.Math.Between(200, game.config.width), 0, "spikeHead")
             this.heads.setVelocityX(-gameOptions.playerSpeed / 5)
         }
+
+        if (Phaser.Math.Between(0, 3) == 1) {
+            this.fans.create(Phaser.Math.Between(x, x + 64), y - 12, "fanOff")
+            this.fans.setVelocityX(-gameOptions.playerSpeed / 5)
+        }
     }
 
     // Fruits give different amount of score
@@ -234,6 +255,11 @@ class PlayGame extends Phaser.Scene {
         player.anims.play("hit", true)
         this.sound.play("hit")
         player.body.checkCollision.down = false
+    }
+
+    fanOn(player, fan) {
+        fan.anims.play("fanOn", true)
+        player.body.velocity.y = -400
     }
 
     update() {
