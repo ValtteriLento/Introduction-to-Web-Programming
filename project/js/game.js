@@ -36,7 +36,8 @@ class MainMenu extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("grassland", "assets/Grassland_BG_(288 x 208).png")
+        this.load.image("grassland", "assets/Backgrounds/Grassland_BG_(288 x 208).png")
+        this.load.image("autumn", "assets/Backgrounds/Autumn_BG_(288 x 208).png")
         this.load.spritesheet("terrain", "assets/Terrain (16x16).png", {frameWidth: 16, frameHeight: 16})
         this.load.spritesheet("kiwi", "assets/Fruits/Kiwi.png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("pineapple", "assets/Fruits/Pineapple.png", {frameWidth: 32, frameHeight: 32})
@@ -52,6 +53,7 @@ class MainMenu extends Phaser.Scene {
         this.load.audio("jump", "assets/sfx/Retro Jump Classic 08.wav")
         this.load.audio("pickUp", "assets/sfx/Retro PickUp 18.wav")
         this.load.audio("hit", "assets/sfx/Retro Negative Short 23.wav")
+        this.load.audio("music", "assets/sfx/Retro Music Loop - PV8 - NES Style 01.wav")
     }
 
     create() {
@@ -145,6 +147,8 @@ class PlayGame extends Phaser.Scene {
     create() {
         this.add.image(game.config.width / 2, game.config.height / 2, "grassland").setScale(3)
 
+        this.sound.play("music")
+
         this.terrain = this.physics.add.group({
             immovable: true,
             allowGravity: false
@@ -167,20 +171,22 @@ class PlayGame extends Phaser.Scene {
             const x = Phaser.Math.Between(200, 800)
             const y = 200 + (20 * i)
 
-            this.terrain.create(x, y, "terrain", 188)
-            this.terrain.create(x + 16, y, "terrain", 189)
-            this.terrain.create(x + 32, y, "terrain", 189)
-            this.terrain.create(x + 48, y, "terrain", 189)
-            this.terrain.create(x + 64, y, "terrain", 190)
+            this.terrain.create(x, y, "terrain", 6)
+            this.terrain.create(x + 16, y, "terrain", 7)
+            this.terrain.create(x + 32, y, "terrain", 7)
+            this.terrain.create(x + 48, y, "terrain", 7)
+            this.terrain.create(x + 64, y, "terrain", 8)
         }
 
         // Starting terrain for player
-        this.terrain.create(68, game.config.height / 2 - 16, "terrain", 210)
-        this.terrain.create(68, game.config.height / 2, "terrain", 188)
-        this.terrain.create(84, game.config.height / 2, "terrain", 189)
-        this.terrain.create(100, game.config.height / 2, "terrain", 189)
-        this.terrain.create(116, game.config.height / 2, "terrain", 189)
-        this.terrain.create(132, game.config.height / 2, "terrain", 190)
+        this.terrain.create(52, game.config.height / 2 - 16, "terrain", 6)
+        this.terrain.create(68, game.config.height / 2 - 16, "terrain", 8)
+        this.terrain.create(52, game.config.height / 2, "terrain", 28)
+        this.terrain.create(68, game.config.height / 2, "terrain", 30)
+        this.terrain.create(84, game.config.height / 2, "terrain", 7)
+        this.terrain.create(100, game.config.height / 2, "terrain", 7)
+        this.terrain.create(116, game.config.height / 2, "terrain", 7)
+        this.terrain.create(132, game.config.height / 2, "terrain", 8)
 
         this.player = this.physics.add.sprite(88, 280, "player")
         this.physics.add.collider(this.player, this.terrain)
@@ -208,14 +214,14 @@ class PlayGame extends Phaser.Scene {
 
     // Adds new terrain, enemies and collectibles infinitely
     addTerrain() {
-        const x = 800
+        const x = 860
         const y = Phaser.Math.Between(200, 600)
 
-        this.terrain.create(x, y, "terrain", 188)
-        this.terrain.create(x + 16, y, "terrain", 189)
-        this.terrain.create(x + 32, y, "terrain", 189)
-        this.terrain.create(x + 48, y, "terrain", 189)
-        this.terrain.create(x + 64, y, "terrain", 190)
+        this.terrain.create(x, y, "terrain", 6)
+        this.terrain.create(x + 16, y, "terrain", 7)
+        this.terrain.create(x + 32, y, "terrain", 7)
+        this.terrain.create(x + 48, y, "terrain", 7)
+        this.terrain.create(x + 64, y, "terrain", 8)
         this.terrain.setVelocityX(-gameOptions.playerSpeed / 5)
 
         if (Phaser.Math.Between(0, 1) == 1) {
@@ -322,19 +328,9 @@ class GameOver extends Phaser.Scene {
             fill: "#660000"
         }).setOrigin(0.5)
 
-        this.add.text(game.config.width / 2, game.config.height / 3.5, "Your score: " + this.scene.get("PlayGame").score, {
+        this.add.text(game.config.width / 2, game.config.height / 3, "Your score: " + this.scene.get("PlayGame").score, {
             fontSize: 32,
             fill: "#006600"
-        }).setOrigin(0.5)
-
-        this.add.text(game.config.width / 2, game.config.height / 3, "Enter your name:", {
-            fontSize: 32,
-            fill: "#006600"
-        }).setOrigin(0.5)
-
-        const textEntry = this.add.text(game.config.width / 2, game.config.height / 2.5, "", {
-            fontSize: 32,
-            fill: "#ff0000"
         }).setOrigin(0.5)
 
         this.add.text(game.config.width / 2, game.config.height / 2, "Press SPACE to play again", {
