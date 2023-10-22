@@ -53,7 +53,7 @@ class MainMenu extends Phaser.Scene {
         this.load.audio("jump", "assets/sfx/Retro Jump Classic 08.wav")
         this.load.audio("pickUp", "assets/sfx/Retro PickUp 18.wav")
         this.load.audio("hit", "assets/sfx/Retro Negative Short 23.wav")
-        this.load.audio("music", "assets/sfx/Retro Music Loop - PV8 - NES Style 01.wav")
+        this.load.audio("fan", "assets/sfx/Retro Magic Protection 01.wav")
     }
 
     create() {
@@ -146,8 +146,6 @@ class PlayGame extends Phaser.Scene {
 
     create() {
         this.add.image(game.config.width / 2, game.config.height / 2, "grassland").setScale(3)
-
-        this.sound.play("music")
 
         this.terrain = this.physics.add.group({
             immovable: true,
@@ -265,6 +263,7 @@ class PlayGame extends Phaser.Scene {
 
     fanOn(player, fan) {
         fan.anims.play("fanOn", true)
+        this.sound.play("fan")
         player.body.velocity.y = -400
     }
 
@@ -280,8 +279,8 @@ class PlayGame extends Phaser.Scene {
                 this.player.body.velocity.x = gameOptions.playerSpeed
                 this.player.setFlipX(false)
                 this.player.anims.play("run", true)
-            // Creates illusion of player standing still when on moving platform
             } else if (this.player.body.touching.down) {
+                // Creates illusion of player standing still when on moving platform
                 this.player.body.velocity.x = -gameOptions.playerSpeed / 5
                 this.player.anims.play("idle", true)
             } else {
