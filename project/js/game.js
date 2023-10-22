@@ -37,7 +37,6 @@ class MainMenu extends Phaser.Scene {
 
     preload() {
         this.load.image("grassland", "assets/Backgrounds/Grassland_BG_(288 x 208).png")
-        this.load.image("autumn", "assets/Backgrounds/Autumn_BG_(288 x 208).png")
         this.load.spritesheet("terrain", "assets/Terrain (16x16).png", {frameWidth: 16, frameHeight: 16})
         this.load.spritesheet("kiwi", "assets/Fruits/Kiwi.png", {frameWidth: 32, frameHeight: 32})
         this.load.spritesheet("pineapple", "assets/Fruits/Pineapple.png", {frameWidth: 32, frameHeight: 32})
